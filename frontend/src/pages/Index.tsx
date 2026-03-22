@@ -10,6 +10,7 @@ import CropCalendar from "@/components/CropCalendar";
 import CropPrediction from "@/components/CropPrediction";
 import BusinessModel from "@/components/BusinessModel";
 import LanguageSelector from "@/components/LanguageSelector";
+import IoTDashboard from "@/components/IoTDashboard";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
@@ -20,6 +21,8 @@ const Index = () => {
     switch (activeSection) {
       case "home":
         return <Dashboard />;
+      case "iot":
+        return <IoTDashboard />;
       case "weather":
         return (
           <div className="space-y-6">

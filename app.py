@@ -142,6 +142,23 @@ def predict_crop():
                 'error': 'All input values must be valid numbers'
             }), 400
         
+        # Check for NaN values
+        import math
+        nan_fields = []
+        if math.isnan(nitrogen): nan_fields.append('nitrogen')
+        if math.isnan(phosphorus): nan_fields.append('phosphorus')
+        if math.isnan(potassium): nan_fields.append('potassium')
+        if math.isnan(temperature): nan_fields.append('temperature')
+        if math.isnan(humidity): nan_fields.append('humidity')
+        if math.isnan(ph): nan_fields.append('ph')
+        if math.isnan(rainfall): nan_fields.append('rainfall')
+        
+        if nan_fields:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid values for: {", ".join(nan_fields)}. Please enter valid numbers.'
+            }), 400
+        
         # Validate ranges
         if not (0 <= nitrogen <= 300):
             return jsonify({'success': False, 'error': 'Nitrogen should be between 0-300 kg/hectare'}), 400
@@ -708,7 +725,7 @@ def test_predict():
 
 @app.route('/api/dashboard-stats', methods=['GET'])
 def dashboard_stats():
-    """Get technical capabilities showcase for Smart India Hackathon"""
+    """Get technical capabilities and statistics"""
     current_month = datetime.datetime.now().month
     total_crops = len(get_all_crop_names())
     
@@ -825,7 +842,7 @@ def search_crops_endpoint():
 
 @app.route('/api/crop-calendar', methods=['GET'])
 def crop_calendar():
-    """Get comprehensive crop calendar for Smart India Hackathon"""
+    """Get comprehensive crop calendar"""
     try:
         current_month = datetime.datetime.now().month
         
@@ -981,7 +998,7 @@ def crop_calendar():
             'current_activities': current_activities,
             'smart_recommendations': smart_recommendations,
             'crop_calendar': crop_calendar_data,
-            'generated_for': 'Smart India Hackathon 2025',
+            'generated_for': 'KrishiMitra AI',
             'last_updated': datetime.datetime.now().isoformat()
         })
         
@@ -1067,7 +1084,7 @@ def farmer_advisory():
             'location_specific': location_advice,
             'crop_type': crop_type,
             'issue_type': issue_type,
-            'generated_by': 'KrishiMitra AI - Smart India Hackathon 2025',
+            'generated_by': 'KrishiMitra AI',
             'timestamp': datetime.datetime.now().isoformat()
         })
         
@@ -1076,6 +1093,223 @@ def farmer_advisory():
         return jsonify({
             'success': False,
             'error': 'Failed to generate farmer advisory'
+        }), 500
+
+# =====================================================
+# IoT SMART FARMING INTEGRATION
+# =====================================================
+
+# Store latest IoT sensor data
+latest_iot_data = {
+    'temperature': 0,
+    'humidity': 0,
+    'moisture': 0,
+    'ph': 7.0,
+    'rainfall': 0,
+    'timestamp': None
+}
+
+@app.route('/api/iot-data', methods=['POST'])
+def receive_iot_data():
+    """
+    Receive real-time sensor data from ESP32 IoT device
+    Sensors: DHT11 (temp/humidity), Soil Moisture, pH Sensor
+    """
+    try:
+        data = request.json
+        
+        # Extract sensor values
+        temperature = float(data.get('temperature', 0))
+        humidity = float(data.get('humidity', 0))
+        moisture_raw = int(data.get('moisture', 0))
+        ph = float(data.get('ph', 6.5))
+        rainfall = float(data.get('rainfall', 0))
+        
+        # Convert moisture from analog (0-4095) to percentage (0-100%)
+        # ESP32 ADC is 12-bit (0-4095), higher value = drier soil
+        moisture_percent = 100 - (moisture_raw / 4095 * 100)
+        moisture_percent = max(0, min(100, moisture_percent))
+        
+        # Update latest IoT data
+        global latest_iot_data
+        latest_iot_data = {
+            'temperature': temperature,
+            'humidity': humidity,
+            'moisture': round(moisture_percent, 1),
+            'moisture_raw': moisture_raw,
+            'ph': ph,
+            'rainfall': rainfall,
+            'timestamp': datetime.datetime.now().isoformat()
+        }
+        
+        # Generate smart alerts based on sensor values
+        alerts = []
+        if moisture_percent < 30:
+            alerts.append({
+                'type': 'warning',
+                'icon': '💧',
+                'message': 'Soil is DRY! Irrigation needed immediately.',
+                'priority': 'high'
+            })
+        elif moisture_percent < 50:
+            alerts.append({
+                'type': 'info',
+                'icon': '💧',
+                'message': 'Soil moisture is moderate. Consider irrigation soon.',
+                'priority': 'medium'
+            })
+        else:
+            alerts.append({
+                'type': 'success',
+                'icon': '✅',
+                'message': 'Soil moisture is optimal for most crops.',
+                'priority': 'low'
+            })
+        
+        if temperature > 35:
+            alerts.append({
+                'type': 'warning',
+                'icon': '🌡️',
+                'message': 'High temperature! Provide shade or mulch.',
+                'priority': 'high'
+            })
+        elif temperature < 15:
+            alerts.append({
+                'type': 'warning',
+                'icon': '🌡️',
+                'message': 'Low temperature! Protect crops from cold.',
+                'priority': 'medium'
+            })
+        
+        if ph < 5.5:
+            alerts.append({
+                'type': 'warning',
+                'icon': '⚗️',
+                'message': 'Soil is acidic. Add lime to adjust pH.',
+                'priority': 'medium'
+            })
+        elif ph > 7.5:
+            alerts.append({
+                'type': 'warning',
+                'icon': '⚗️',
+                'message': 'Soil is alkaline. Add organic matter or sulfur.',
+                'priority': 'medium'
+            })
+        
+        # Use ML model for crop prediction with sensor data
+        # Use default NPK values (can be enhanced with NPK sensor later)
+        nitrogen = 90  # Default N value
+        phosphorus = 60  # Default P value
+        potassium = 50  # Default K value
+        
+        prediction_result = None
+        if MODEL_AVAILABLE and crop_model and scaler:
+            try:
+                input_features = np.array([[
+                    nitrogen, phosphorus, potassium,
+                    temperature, humidity, ph, rainfall if rainfall > 0 else 200
+                ]])
+                input_scaled = scaler.transform(input_features)
+                prediction = crop_model.predict(input_scaled)[0]
+                confidence = float(max(crop_model.predict_proba(input_scaled)[0]))
+                
+                crop_info = get_crop_info(str(prediction).lower())
+                
+                prediction_result = {
+                    'crop': str(prediction).title(),
+                    'confidence': round(confidence * 100, 1),
+                    'emoji': crop_info.get('emoji', '🌱') if crop_info else '🌱',
+                    'season': crop_info.get('season', 'Unknown') if crop_info else 'Unknown',
+                    'duration': crop_info.get('duration', 'Unknown') if crop_info else 'Unknown',
+                    'tips': crop_info.get('tips', 'Follow good agricultural practices.') if crop_info else ''
+                }
+            except Exception as e:
+                logger.error(f"ML prediction error in IoT: {e}")
+        
+        logger.info(f"IoT data received: Temp={temperature}°C, Humidity={humidity}%, Moisture={moisture_percent:.1f}%, pH={ph}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'IoT data processed successfully',
+            'sensor_data': latest_iot_data,
+            'alerts': alerts,
+            'prediction': prediction_result,
+            'timestamp': datetime.datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"IoT data processing error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/iot-live', methods=['GET'])
+def get_iot_live_data():
+    """Get latest IoT sensor data for live dashboard"""
+    try:
+        if latest_iot_data['timestamp'] is None:
+            return jsonify({
+                'success': False,
+                'message': 'No IoT data received yet. Waiting for sensor transmission.',
+                'sensor_data': None
+            })
+        
+        # Check if data is fresh (within last 60 seconds)
+        last_update = datetime.datetime.fromisoformat(latest_iot_data['timestamp'])
+        is_fresh = (datetime.datetime.now() - last_update).total_seconds() < 60
+        
+        return jsonify({
+            'success': True,
+            'sensor_data': latest_iot_data,
+            'is_live': is_fresh,
+            'status': 'live' if is_fresh else 'stale',
+            'message': 'Receiving live sensor data' if is_fresh else 'Sensor data may be outdated'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching live IoT data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/iot-status', methods=['GET'])
+def iot_device_status():
+    """Check IoT device connection status"""
+    try:
+        if latest_iot_data['timestamp'] is None:
+            return jsonify({
+                'connected': False,
+                'message': 'IoT device not connected',
+                'last_seen': None
+            })
+        
+        last_update = datetime.datetime.fromisoformat(latest_iot_data['timestamp'])
+        seconds_ago = (datetime.datetime.now() - last_update).total_seconds()
+        
+        if seconds_ago < 30:
+            status = 'connected'
+            message = 'IoT device is online and transmitting'
+        elif seconds_ago < 120:
+            status = 'intermittent'
+            message = 'IoT device connection unstable'
+        else:
+            status = 'disconnected'
+            message = 'IoT device offline or out of range'
+        
+        return jsonify({
+            'connected': status == 'connected',
+            'status': status,
+            'message': message,
+            'last_seen': latest_iot_data['timestamp'],
+            'seconds_ago': int(seconds_ago)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'connected': False,
+            'error': str(e)
         }), 500
 
 if __name__ == '__main__':

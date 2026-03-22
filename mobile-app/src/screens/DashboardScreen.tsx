@@ -33,7 +33,6 @@ const DashboardScreen = ({ navigation }: any) => {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
 
-  // Technical capabilities showcase for Smart India Hackathon
   const defaultStats: StatCard[] = [
     {
       title: 'AI Models',
@@ -186,6 +185,12 @@ const DashboardScreen = ({ navigation }: any) => {
 
   const features: FeatureCard[] = [
     {
+      title: 'Smart Farm IoT',
+      description: 'Real-time sensor monitoring for smart farming',
+      status: 'Available',
+      icon: 'access-point'
+    },
+    {
       title: t('dashboard.features.smartCropRecommendations.title'),
       description: t('dashboard.features.smartCropRecommendations.description'),
       status: 'Available',
@@ -232,6 +237,9 @@ const DashboardScreen = ({ navigation }: any) => {
 
   const navigateToFeature = (featureTitle: string) => {
     switch (featureTitle) {
+      case 'Smart Farm IoT':
+        navigation.navigate('IoT');
+        break;
       case 'Smart Crop Recommendations':
         navigation.navigate('CropRecommendation');
         break;
@@ -281,6 +289,7 @@ const DashboardScreen = ({ navigation }: any) => {
           <View style={styles.menuContainer}>
             {[
               { title: t('navigation.dashboard'), icon: 'view-dashboard', screen: 'Dashboard' },
+              { title: 'Smart Farm IoT', icon: 'access-point', screen: 'IoT' },
               { title: t('navigation.weather'), icon: 'weather-cloudy', screen: 'WeatherInfo' },
               { title: t('navigation.cropPrediction'), icon: 'sprout', screen: 'CropRecommendation' },
               { title: t('navigation.diseaseDetection'), icon: 'camera-plus', screen: 'DiseaseDetection' },
@@ -342,10 +351,6 @@ const DashboardScreen = ({ navigation }: any) => {
             <MaterialCommunityIcons name="menu" size={28} color="white" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <View style={styles.teamInfo}>
-              <Text style={styles.teamName}>Team: CodeHex</Text>
-              <Text style={styles.problemStatement}>Problem Statement: 25030</Text>
-            </View>
             <Title style={styles.headerTitle}>{t('dashboard.welcomeTitle')}</Title>
             <Paragraph style={styles.headerSubtitle}>
               {t('dashboard.subtitle')}
@@ -495,25 +500,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
   },
-  teamInfo: {
-    alignItems: 'center',
-    marginBottom: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  teamName: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  problemStatement: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   logoContainer: {
     marginBottom: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -540,17 +526,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     lineHeight: 28,
-  },
-  hackathonBadge: {
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
   },
   headerSubtitle: {
     color: 'rgba(255, 255, 255, 0.9)',

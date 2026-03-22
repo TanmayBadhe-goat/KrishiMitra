@@ -2,8 +2,9 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // Base URL for the backend API
-// Use Railway production URL for both development and production
-const API_URL = 'https://web-production-e2f4f.up.railway.app/';
+// For local development with Expo, use your computer's IP address (not localhost)
+// This allows physical devices to connect to your local backend
+const API_URL = 'http://192.168.29.153:5000';
 
 console.log('Using API URL:', API_URL);
 console.log('Platform:', Platform.OS);
@@ -353,6 +354,48 @@ export const cropService = {
       return response.data;
     } catch (error) {
       console.log('Dashboard stats unavailable, using fallback data');
+      throw error;
+    }
+  },
+
+  // Get live IoT sensor data
+  getIoTLiveData: async (): Promise<any> => {
+    return retryWithBackoff(async () => {
+      console.log('Fetching IoT live data from:', `${API_URL}/api/iot-live`);
+      
+      const response = await axios.get(`${API_URL}/api/iot-live`, {
+        timeout: 8000,
+        params: {
+          _t: Date.now() // Cache busting
+        }
+      });
+      
+      console.log('IoT live data response:', response.data);
+      return response.data;
+    }, 2, 1000).catch(error => {
+      console.error('Error fetching IoT data after retries:', error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('Request timeout - IoT server not responding');
+        } else if (error.request) {
+          throw new Error('Network error: Unable to reach IoT server');
+        }
+      }
+      
+      throw error;
+    });
+  },
+
+  // Check IoT device status
+  getIoTStatus: async (): Promise<any> => {
+    try {
+      const response = await axios.get(`${API_URL}/api/iot-status`, {
+        timeout: 5000,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error checking IoT status:', error);
       throw error;
     }
   },

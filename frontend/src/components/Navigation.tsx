@@ -8,7 +8,8 @@ import {
   Calendar,
   Menu,
   X,
-  Building
+  Building,
+  Radio
 } from "lucide-react";
 import { Button } from "@/components/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/sheet";
@@ -25,6 +26,7 @@ const Navigation = ({ activeSection, onSectionChange }: NavigationProps) => {
 
   const navItems = [
     { id: "home", label: t('navigation.dashboard', 'Dashboard'), icon: Home },
+    { id: "iot", label: t('navigation.iot', 'Smart Farm IoT'), icon: Radio },
     { id: "weather", label: t('navigation.weather', 'Weather'), icon: Cloud },
     { id: "crops", label: t('navigation.crops', 'Crops'), icon: Database },
     { id: "detection", label: t('navigation.detection', 'Disease Detection'), icon: Scan },

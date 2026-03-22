@@ -1,0 +1,156 @@
+# ===========================================
+# KRISHIMITRA - GIT IGNORE
+# ===========================================
+
+# -------------------------------------------
+# Node.js / JavaScript
+# -------------------------------------------
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.web-build/
+.next/
+out/
+
+# Cache
+.cache/
+*.tsbuildinfo
+.npm/
+.yarn/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -------------------------------------------
+# Python
+# -------------------------------------------
+
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# -------------------------------------------
+# Environment Variables (SENSITIVE!)
+# -------------------------------------------
+
+# NEVER upload .env files with secrets
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Keep example files
+!.env.example
+!**/.env.example
+
+# -------------------------------------------
+# IDE / Editor
+# -------------------------------------------
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# -------------------------------------------
+# OS Generated Files
+# -------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# -------------------------------------------
+# Mobile / Expo
+# -------------------------------------------
+
+# Expo
+.expo/
+expo-env.d.ts
+
+# Native builds
+ios/
+android/
+.kotlin/
+
+# Keystore files (SENSITIVE!)
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# -------------------------------------------
+# Misc
+# -------------------------------------------
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.backup
+*.old
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Debug
+npm-debug.*
+yarn-debug.*

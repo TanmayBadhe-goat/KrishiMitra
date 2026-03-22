@@ -9,7 +9,7 @@
     "build:dev": "npx vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "chmod +x node_modules/.bin/* || true"
+    "postinstall": "echo 'Dependencies installed'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
