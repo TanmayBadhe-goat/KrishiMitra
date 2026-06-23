@@ -1317,4 +1317,4 @@ if __name__ == '__main__':
     logger.info(f"Starting KrishiMitra API on port {port}")
     logger.info(f"Gemini API configured: {bool(GEMINI_API_KEY)}")
     logger.info(f"Weather API configured: {bool(WEATHER_API_KEY)}")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
